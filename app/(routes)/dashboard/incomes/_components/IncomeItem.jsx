@@ -15,8 +15,19 @@ import { db } from "@/utils/dbConfig";
 import { Incomes } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 import { eq } from "drizzle-orm";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function IncomeItem({ budget, refreshData }) {
   const [name, setName] = useState(budget.name);
@@ -38,6 +49,20 @@ function IncomeItem({ budget, refreshData }) {
     } catch (error) {
       console.error("Error updating income:", error);
       toast("Failed to update income source");
+    }
+  };
+
+  const onDeleteIncome = async () => {
+    try {
+      await db
+        .delete(Incomes)
+        .where(eq(Incomes.id, budget.id));
+
+      refreshData();
+      toast("Income Source Deleted!");
+    } catch (error) {
+      console.error("Error deleting income:", error);
+      toast("Failed to delete income source");
     }
   };
 
@@ -103,6 +128,38 @@ function IncomeItem({ budget, refreshData }) {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-400 hover:text-danger hover:bg-danger/5 transition-colors"
+              >
+                <Trash className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl font-bold text-gray-900">
+                  Delete Income Source
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-600">
+                  Are you sure you want to delete this income source? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="border-gray-200 hover:bg-gray-50">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={onDeleteIncome}
+                  className="bg-danger hover:bg-danger/90 text-white"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>
